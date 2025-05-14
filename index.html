@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -305,51 +304,69 @@
             </div>
         </div>
     </section>
+    <script src="https://unpkg.com/paho-mqtt/mqttws31.min.js"></script>
     <script>
-        function send(cmd) {
-            fetch(`http://ip/${cmd}`);
+        // 1. Crear cliente
+        const client = new Paho.MQTT.Client("broker.hivemq.com", 8000, "cliente_" + parseInt(Math.random() * 1000));
+
+        // 2. Conectarse al broker
+        client.connect({
+            onSuccess: onConnect,
+            onFailure: (e) => console.error("Conexión fallida:", e),
+        });
+
+        function onConnect() {
+            console.log("Conectado al broker MQTT");
         }
 
+        // 3. Función para publicar mensajes
+        function sendMQTT(cmd) {
+            const message = new Paho.MQTT.Message(cmd);
+            message.destinationName = "carro/control";  // El topic que escucha el ESP32
+            client.send(message);
+            console.log("Enviado:", cmd);
+        }
+
+        // 4. Adaptar botones
         const btnForward = document.getElementById("btnAdelante");
-        btnForward.addEventListener("mousedown", () => send("forward"));
-        btnForward.addEventListener("mouseup", () => send("stop"));
-        btnForward.addEventListener("mouseleave", () => send("stop"));
-        // Control con touch (para móviles)
+        btnForward.addEventListener("mousedown", () => sendMQTT("forward"));
+        btnForward.addEventListener("mouseup", () => sendMQTT("stop"));
+        btnForward.addEventListener("mouseleave", () => sendMQTT("stop"));
         btnForward.addEventListener("touchstart", (e) => {
-            e.preventDefault(); // evita el doble evento
-            send("forward");
+            e.preventDefault();
+            sendMQTT("forward");
         });
-        btnForward.addEventListener("touchend", () => send("stop"));
+        btnForward.addEventListener("touchend", () => sendMQTT("stop"));
 
         const btnReverse = document.getElementById('btnReversa');
-        btnReverse.addEventListener("mousedown", () => send('reverse'));
-        btnReverse.addEventListener("mouseup", () => send("stop"));
-        btnReverse.addEventListener("mouseleave", () => send("stop"));
+        btnReverse.addEventListener("mousedown", () => sendMQTT('reverse'));
+        btnReverse.addEventListener("mouseup", () => sendMQTT("stop"));
+        btnReverse.addEventListener("mouseleave", () => sendMQTT("stop"));
         btnReverse.addEventListener("touchstart", (e) => {
             e.preventDefault(); // evita el doble evento
-            send("reverse");
+            sendMQTT("reverse");
         });
-        btnReverse.addEventListener("touchend", () => send("stop"));
+        btnReverse.addEventListener("touchend", () => sendMQTT("stop"));
 
         const btnLeft = document.getElementById('btnIzquierda');
-        btnLeft.addEventListener("mousedown", () => send('left'));
-        btnLeft.addEventListener("mouseup", () => send("stop"));
-        btnLeft.addEventListener("mouseleave", () => send("stop"));
+        btnLeft.addEventListener("mousedown", () => sendMQTT('left'));
+        btnLeft.addEventListener("mouseup", () => sendMQTT("stop"));
+        btnLeft.addEventListener("mouseleave", () => sendMQTT("stop"));
         btnLeft.addEventListener("touchstart", (e) => {
             e.preventDefault(); // evita el doble evento
-            send("left");
+            sendMQTT("left");
         });
-        btnLeft.addEventListener("touchend", () => send("stop"));
+        btnLeft.addEventListener("touchend", () => sendMQTT("stop"));
 
         const btnRight = document.getElementById('btnDerecha');
-        btnRight.addEventListener("mousedown", () => send('right'));
-        btnRight.addEventListener("mouseup", () => send("stop"));
-        btnRight.addEventListener("mouseleave", () => send("stop"));
+        btnRight.addEventListener("mousedown", () => sendMQTT('right'));
+        btnRight.addEventListener("mouseup", () => sendMQTT("stop"));
+        btnRight.addEventListener("mouseleave", () => sendMQTT("stop"));
         btnRight.addEventListener("touchstart", (e) => {
             e.preventDefault(); // evita el doble evento
-            send("right");
+            sendMQTT("right");
         });
-        btnRight.addEventListener("touchend", () => send("stop"));
+        btnRight.addEventListener("touchend", () => sendMQTT("stop"));
 
         const foco1 = document.getElementById('foco1');
         const foco2 = document.getElementById('foco2');
