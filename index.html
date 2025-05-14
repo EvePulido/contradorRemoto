@@ -306,28 +306,37 @@
     </section>
     <script src="https://unpkg.com/paho-mqtt/mqttws31.min.js"></script>
     <script>
-        // 1. Crear cliente
+        // 1. Crear cliente MQTT
         const client = new Paho.MQTT.Client("broker.hivemq.com", 8000, "cliente_" + parseInt(Math.random() * 1000));
+
+        let mqttConnected = false; // bandera para verificar conexión
 
         // 2. Conectarse al broker
         client.connect({
             onSuccess: onConnect,
             onFailure: (e) => console.error("Conexión fallida:", e),
+            useSSL: false // importante para WebSocket en HiveMQ
         });
 
+        // 3. Función cuando se conecta
         function onConnect() {
             console.log("Conectado al broker MQTT");
+            mqttConnected = true;
         }
 
-        // 3. Función para publicar mensajes
+        // 4. Función para enviar mensajes MQTT
         function sendMQTT(cmd) {
+            if (!mqttConnected) {
+                console.warn("MQTT aún no está conectado.");
+                return;
+            }
             const message = new Paho.MQTT.Message(cmd);
-            message.destinationName = "carro/control";  // El topic que escucha el ESP32
+            message.destinationName = "carro/control"; // topic que escucha el ESP32
             client.send(message);
             console.log("Enviado:", cmd);
         }
 
-        // 4. Adaptar botones
+        // 5. Asignar eventos a botones de movimiento
         const btnForward = document.getElementById("btnAdelante");
         btnForward.addEventListener("mousedown", () => sendMQTT("forward"));
         btnForward.addEventListener("mouseup", () => sendMQTT("stop"));
@@ -338,61 +347,63 @@
         });
         btnForward.addEventListener("touchend", () => sendMQTT("stop"));
 
-        const btnReverse = document.getElementById('btnReversa');
-        btnReverse.addEventListener("mousedown", () => sendMQTT('reverse'));
+        const btnReverse = document.getElementById("btnReversa");
+        btnReverse.addEventListener("mousedown", () => sendMQTT("reverse"));
         btnReverse.addEventListener("mouseup", () => sendMQTT("stop"));
         btnReverse.addEventListener("mouseleave", () => sendMQTT("stop"));
         btnReverse.addEventListener("touchstart", (e) => {
-            e.preventDefault(); // evita el doble evento
+            e.preventDefault();
             sendMQTT("reverse");
         });
         btnReverse.addEventListener("touchend", () => sendMQTT("stop"));
 
-        const btnLeft = document.getElementById('btnIzquierda');
-        btnLeft.addEventListener("mousedown", () => sendMQTT('left'));
+        const btnLeft = document.getElementById("btnIzquierda");
+        btnLeft.addEventListener("mousedown", () => sendMQTT("left"));
         btnLeft.addEventListener("mouseup", () => sendMQTT("stop"));
         btnLeft.addEventListener("mouseleave", () => sendMQTT("stop"));
         btnLeft.addEventListener("touchstart", (e) => {
-            e.preventDefault(); // evita el doble evento
+            e.preventDefault();
             sendMQTT("left");
         });
         btnLeft.addEventListener("touchend", () => sendMQTT("stop"));
 
-        const btnRight = document.getElementById('btnDerecha');
-        btnRight.addEventListener("mousedown", () => sendMQTT('right'));
+        const btnRight = document.getElementById("btnDerecha");
+        btnRight.addEventListener("mousedown", () => sendMQTT("right"));
         btnRight.addEventListener("mouseup", () => sendMQTT("stop"));
         btnRight.addEventListener("mouseleave", () => sendMQTT("stop"));
         btnRight.addEventListener("touchstart", (e) => {
-            e.preventDefault(); // evita el doble evento
+            e.preventDefault();
             sendMQTT("right");
         });
         btnRight.addEventListener("touchend", () => sendMQTT("stop"));
 
-        const foco1 = document.getElementById('foco1');
-        const foco2 = document.getElementById('foco2');
+        // 6. Lógica de luces
+        const foco1 = document.getElementById("foco1");
+        const foco2 = document.getElementById("foco2");
 
         let encendidoIzquierda = false;
         let encendidoDerecha = false;
         let lucesPreventivas = false;
 
-        const dirIzquierda = document.getElementById('dirIzquierda');
-        dirIzquierda.addEventListener('click', () => {
+        const dirIzquierda = document.getElementById("dirIzquierda");
+        dirIzquierda.addEventListener("click", () => {
             encendidoIzquierda = !encendidoIzquierda;
-            foco1.src = encendidoIzquierda ? 'img/encendido.png' : 'img/apagado.png';
+            foco1.src = encendidoIzquierda ? "img/encendido.png" : "img/apagado.png";
         });
 
-        const dirDerecha = document.getElementById('dirDerecha');
-        dirDerecha.addEventListener('click', () => {
+        const dirDerecha = document.getElementById("dirDerecha");
+        dirDerecha.addEventListener("click", () => {
             encendidoDerecha = !encendidoDerecha;
-            foco2.src = encendidoDerecha ? 'img/encendido.png' : 'img/apagado.png';
+            foco2.src = encendidoDerecha ? "img/encendido.png" : "img/apagado.png";
         });
 
-        const preventivas = document.getElementById('preventivas');
-        preventivas.addEventListener('click', () => {
+        const preventivas = document.getElementById("preventivas");
+        preventivas.addEventListener("click", () => {
             lucesPreventivas = !lucesPreventivas;
-            foco1.src = lucesPreventivas ? 'img/encendido.png' : 'img/apagado.png';
-            foco2.src = lucesPreventivas ? 'img/encendido.png' : 'img/apagado.png';
+            foco1.src = lucesPreventivas ? "img/encendido.png" : "img/apagado.png";
+            foco2.src = lucesPreventivas ? "img/encendido.png" : "img/apagado.png";
         });
+
     </script>
 </body>
 
